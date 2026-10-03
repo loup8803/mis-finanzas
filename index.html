@@ -12,13 +12,21 @@
     .card { background-color: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; }
     .balance-title { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
     .balance-amount { font-size: 2rem; font-weight: bold; color: #4ade80; margin: 4px 0; }
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+    
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .savings-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+    
     .stat-item { background: #0f172a; padding: 8px; border-radius: 8px; text-align: center; }
     .stat-label { font-size: 0.7rem; color: #94a3b8; }
     .stat-value { font-size: 0.9rem; font-weight: 600; margin-top: 2px; }
+    
     .val-ingreso { color: #4ade80; }
     .val-gasto { color: #f87171; }
-    .val-ahorro { color: #38bdf8; }
+    .val-bgr { color: #38bdf8; }
+    .val-angel { color: #a855f7; }
+    .val-taura { color: #f59e0b; }
+    
+    .section-subtitle { font-size: 0.75rem; color: #64748b; margin-top: 12px; font-weight: 600; text-transform: uppercase; }
     
     .form-group { display: flex; flex-direction: column; gap: 10px; }
     input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 0.95rem; }
@@ -26,13 +34,18 @@
     button { background: #0284c7; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 4px; }
     button:active { background: #0369a1; }
     
+    .btn-restore { background: #334155; color: #38bdf8; font-size: 0.8rem; padding: 8px; margin-top: 8px; border-radius: 6px; border: 1px dashed #38bdf8; cursor: pointer; }
+
     .history-title { font-size: 1rem; color: #cbd5e1; margin-bottom: 8px; }
     .list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
     .item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; border-radius: 8px; border-left: 4px solid #cbd5e1; }
     .item.ingreso { border-left-color: #4ade80; }
     .item.gasto { border-left-color: #f87171; }
-    .item.ahorro { border-left-color: #38bdf8; }
-    .item.retiro-ahorro { border-left-color: #fbbf24; }
+    .item.ahorro-bgr { border-left-color: #38bdf8; }
+    .item.ahorro-angel { border-left-color: #a855f7; }
+    .item.ahorro-taura { border-left-color: #f59e0b; }
+    .item.retiro-bgr, .item.retiro-angel, .item.retiro-taura { border-left-color: #ef4444; }
+    
     .item-info { display: flex; flex-direction: column; }
     .item-desc { font-weight: 500; font-size: 0.9rem; }
     .item-date { font-size: 0.7rem; color: #64748b; }
@@ -46,37 +59,60 @@
   <h1>Control Financiero</h1>
 
   <div class="card">
-    <div class="balance-title">Saldo Disponible</div>
+    <div class="balance-title">Saldo Disponible General</div>
     <div class="balance-amount" id="totalBalance">$0.00</div>
     
     <div class="stats-grid">
       <div class="stat-item">
-        <div class="stat-label">Ingresos</div>
+        <div class="stat-label">Ingresos Totales</div>
         <div class="stat-value val-ingreso" id="totalIncome">$0.00</div>
       </div>
       <div class="stat-item">
-        <div class="stat-label">Gastos</div>
+        <div class="stat-label">Gastos Totales</div>
         <div class="stat-value val-gasto" id="totalExpenses">$0.00</div>
       </div>
+    </div>
+
+    <div class="section-subtitle">Mis Cuentas de Ahorro</div>
+    <div class="savings-grid">
       <div class="stat-item">
-        <div class="stat-label">Fondo Ahorro</div>
-        <div class="stat-value val-ahorro" id="totalSavings">$0.00</div>
+        <div class="stat-label">Ahorro BGR</div>
+        <div class="stat-value val-bgr" id="bgrSavings">$0.00</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Ahorro Ángel</div>
+        <div class="stat-value val-angel" id="angelSavings">$0.00</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Ahorro Taura</div>
+        <div class="stat-value val-taura" id="tauraSavings">$0.00</div>
       </div>
     </div>
   </div>
 
   <div class="card">
     <form id="txForm" class="form-group">
-      <input type="text" id="desc" placeholder="Descripción (ej. Depósito Ahorro, Retiro Meta)" required>
+      <input type="text" id="desc" placeholder="Descripción (ej. Sueldo, Almuerzo, Depósito BGR)" required>
       <input type="number" id="amount" step="0.01" placeholder="Monto ($)" required>
       <select id="type">
-        <option value="ingreso">Ganancia / Ingreso (+)</option>
-        <option value="gasto">Gasto / Salida (-)</option>
-        <option value="ahorro">Ahorrar Dinero (Guarda en Fondo 💎)</option>
-        <option value="retiro-ahorro">Retirar de Ahorros (Usar dinero 📤)</option>
+        <optgroup label="Movimientos Diarios">
+          <option value="ingreso">Ganancia / Ingreso (+)</option>
+          <option value="gasto">Gasto / Salida (-)</option>
+        </optgroup>
+        <optgroup label="Ahorrar Dinero (Depositar)">
+          <option value="ahorro-bgr">Ahorro BGR (🏦)</option>
+          <option value="ahorro-angel">Ahorro Ángel (👼)</option>
+          <option value="ahorro-taura">Ahorro Taura (⭐)</option>
+        </optgroup>
+        <optgroup label="Retirar de Ahorros">
+          <option value="retiro-bgr">Retirar de Ahorro BGR (📤)</option>
+          <option value="retiro-angel">Retirar de Ahorro Ángel (📤)</option>
+          <option value="retiro-taura">Retirar de Ahorro Taura (📤)</option>
+        </optgroup>
       </select>
       <button type="submit">Agregar Registro</button>
     </form>
+    <button type="button" class="btn-restore" onclick="restaurarDatosAnteriores()">🔄 Recuperar Datos Anteriores ($1171.40 / $912.25)</button>
   </div>
 
   <div class="card">
@@ -86,36 +122,50 @@
 </div>
 
 <script>
-  let txs = JSON.parse(localStorage.getItem('finanzas_data')) || 
+  let txs = JSON.parse(localStorage.getItem('my_finances_data_v2')) || 
+            JSON.parse(localStorage.getItem('finanzas_data')) || 
             JSON.parse(localStorage.getItem('my_finances_data')) || 
             JSON.parse(localStorage.getItem('transactions')) || [];
 
   const totalBalanceEl = document.getElementById('totalBalance');
   const totalIncomeEl = document.getElementById('totalIncome');
   const totalExpensesEl = document.getElementById('totalExpenses');
-  const totalSavingsEl = document.getElementById('totalSavings');
+  const bgrSavingsEl = document.getElementById('bgrSavings');
+  const angelSavingsEl = document.getElementById('angelSavings');
+  const tauraSavingsEl = document.getElementById('tauraSavings');
   const txListEl = document.getElementById('txList');
   const txForm = document.getElementById('txForm');
 
   function updateUI() {
     let income = 0;
     let expenses = 0;
-    let savings = 0;
+    let bgr = 0;
+    let angel = 0;
+    let taura = 0;
 
     txs.forEach(t => {
-      const amt = parseFloat(t.amount);
-      if (t.type === 'ingreso' || t.type === 'income') income += amt;
-      else if (t.type === 'gasto' || t.type === 'expense') expenses += amt;
-      else if (t.type === 'ahorro') savings += amt;
-      else if (t.type === 'retiro-ahorro') savings -= amt;
+      const amt = parseFloat(t.amount) || 0;
+      const type = t.type || '';
+
+      if (type === 'ingreso' || type === 'income') income += amt;
+      else if (type === 'gasto' || type === 'expense') expenses += amt;
+      else if (type === 'ahorro-bgr' || type === 'ahorro') bgr += amt;
+      else if (type === 'ahorro-angel') angel += amt;
+      else if (type === 'ahorro-taura') taura += amt;
+      else if (type === 'retiro-bgr') bgr -= amt;
+      else if (type === 'retiro-angel') angel -= amt;
+      else if (type === 'retiro-taura') taura -= amt;
     });
 
-    const balance = income - expenses - savings;
+    const totalSavings = bgr + angel + taura;
+    const balance = income - expenses - totalSavings;
 
     totalBalanceEl.textContent = `$${balance.toFixed(2)}`;
     totalIncomeEl.textContent = `$${income.toFixed(2)}`;
     totalExpensesEl.textContent = `$${expenses.toFixed(2)}`;
-    totalSavingsEl.textContent = `$${savings.toFixed(2)}`;
+    bgrSavingsEl.textContent = `$${bgr.toFixed(2)}`;
+    angelSavingsEl.textContent = `$${angel.toFixed(2)}`;
+    tauraSavingsEl.textContent = `$${taura.toFixed(2)}`;
 
     txListEl.innerHTML = '';
     if (txs.length === 0) {
@@ -127,32 +177,47 @@
       const realIndex = txs.length - 1 - revIndex;
       const item = document.createElement('div');
       
-      let itemType = t.type;
-      if (t.type === 'income') itemType = 'ingreso';
-      if (t.type === 'expense') itemType = 'gasto';
-      
-      item.className = `item ${itemType}`;
+      let type = t.type;
+      if (type === 'income') type = 'ingreso';
+      if (type === 'expense') type = 'gasto';
+      if (type === 'ahorro') type = 'ahorro-bgr';
+
+      item.className = `item ${type}`;
       
       let sign = '+';
-      if (itemType === 'gasto') sign = '-';
-      if (itemType === 'ahorro') sign = '💎 ';
-      if (itemType === 'retiro-ahorro') sign = '📤 ';
+      if (type === 'gasto') sign = '-';
+      if (type.startsWith('ahorro-')) sign = '💎 ';
+      if (type.startsWith('retiro-')) sign = '📤 ';
       
       item.innerHTML = `
         <div class="item-info">
-          <span class="item-desc">${t.desc || t.description}</span>
+          <span class="item-desc">${t.desc || t.description || 'Movimiento'}</span>
           <span class="item-date">${t.date || ''}</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <span class="item-amount">${sign}$${parseFloat(t.amount).toFixed(2)}</span>
+          <span class="item-amount">${sign}$${(parseFloat(t.amount) || 0).toFixed(2)}</span>
           <button class="btn-del" onclick="deleteTx(${realIndex})">✕</button>
         </div>
       `;
       txListEl.appendChild(item);
     });
 
-    localStorage.setItem('finanzas_data', JSON.stringify(txs));
-    localStorage.setItem('my_finances_data', JSON.stringify(txs));
+    localStorage.setItem('my_finances_data_v2', JSON.stringify(txs));
+  }
+
+  function restaurarDatosAnteriores() {
+    if (txs.length === 0) {
+      txs = [
+        { desc: "Sueldo", amount: "908.19", type: "ingreso", date: "Inicial" },
+        { desc: "Fondos de reserva", amount: "110.54", type: "ingreso", date: "Inicial" },
+        { desc: "Decimos mensualizados", amount: "150.75", type: "ingreso", date: "Inicial" },
+        { desc: "Gastos Consolidados", amount: "912.25", type: "gasto", date: "Inicial" }
+      ];
+      updateUI();
+      alert("¡Datos iniciales recuperados con éxito! ($1171.40 Ingresos / $912.25 Gastos)");
+    } else {
+      alert("Ya tienes movimientos registrados en la pantalla.");
+    }
   }
 
   txForm.addEventListener('submit', (e) => {
