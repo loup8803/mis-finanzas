@@ -3,152 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Control Financiero</title>
+  <title>Control Financiero</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
-    h1 { font-size: 1.4rem; text-align: center; color: #38bdf8; margin-bottom: 4px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; padding: 16px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
+    h1 { font-size: 1.25rem; text-align: center; color: #38bdf8; margin-bottom: 8px; }
+    .card { background-color: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; }
+    .balance-title { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .balance-amount { font-size: 2rem; font-weight: bold; color: #4ade80; margin: 4px 0; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .stat-item { background: #0f172a; padding: 8px; border-radius: 8px; text-align: center; }
+    .stat-label { font-size: 0.7rem; color: #94a3b8; }
+    .stat-value { font-size: 0.9rem; font-weight: 600; margin-top: 2px; }
+    .val-ingreso { color: #4ade80; }
+    .val-gasto { color: #f87171; }
+    .val-ahorro { color: #38bdf8; }
     
-    .card { background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; }
-    .balance-title { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-    .balance-amount { font-size: 2rem; font-weight: bold; margin: 8px 0; }
-    .positive { color: #4ade80; }
-    .negative { color: #f87171; }
-    
-    .stats { display: flex; gap: 12px; margin-top: 8px; }
-    .stat-box { flex: 1; background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; }
-    .stat-label { font-size: 0.75rem; color: #94a3b8; }
-    .stat-value { font-size: 1.1rem; font-weight: bold; margin-top: 4px; }
-    
-    form { display: flex; flex-direction: column; gap: 10px; }
-    input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 1rem; outline: none; }
-    button { background: #0284c7; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 4px; }
+    .form-group { display: flex; flex-direction: column; gap: 10px; }
+    input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 0.95rem; }
+    input:focus, select:focus { outline: none; border-color: #38bdf8; }
+    button { background: #0284c7; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 4px; }
     button:active { background: #0369a1; }
     
     .history-title { font-size: 1rem; color: #cbd5e1; margin-bottom: 8px; }
-    ul { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
-    li { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; border-radius: 6px; font-size: 0.9rem; }
-    .delete-btn { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #ef4444; border: none; border-radius: 4px; }
+    .list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
+    .item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; border-radius: 8px; border-left: 4px solid #cbd5e1; }
+    .item.ingreso { border-left-color: #4ade80; }
+    .item.gasto { border-left-color: #f87171; }
+    .item.ahorro { border-left-color: #38bdf8; }
+    .item.retiro-ahorro { border-left-color: #fbbf24; }
+    .item-info { display: flex; flex-direction: column; }
+    .item-desc { font-weight: 500; font-size: 0.9rem; }
+    .item-date { font-size: 0.7rem; color: #64748b; }
+    .item-amount { font-weight: bold; font-size: 0.95rem; }
+    .btn-del { background: transparent; color: #64748b; border: none; width: auto; padding: 4px 8px; font-size: 0.8rem; }
   </style>
 </head>
 <body>
 
+<div class="container">
   <h1>Control Financiero</h1>
 
-  <!-- Tarjeta de Resumen -->
   <div class="card">
     <div class="balance-title">Saldo Disponible</div>
-    <div id="total-balance" class="balance-amount">$0.00</div>
-    <p id="savings-status" style="font-size: 0.85rem; color: #94a3b8;"></p>
-
-    <div class="stats">
-      <div class="stat-box">
+    <div class="balance-amount" id="totalBalance">$0.00</div>
+    
+    <div class="stats-grid">
+      <div class="stat-item">
         <div class="stat-label">Ingresos</div>
-        <div id="total-income" class="stat-value positive">$0.00</div>
+        <div class="stat-value val-ingreso" id="totalIncome">$0.00</div>
       </div>
-      <div class="stat-box">
+      <div class="stat-item">
         <div class="stat-label">Gastos</div>
-        <div id="total-expense" class="stat-value negative">$0.00</div>
+        <div class="stat-value val-gasto" id="totalExpenses">$0.00</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Fondo Ahorro</div>
+        <div class="stat-value val-ahorro" id="totalSavings">$0.00</div>
       </div>
     </div>
   </div>
 
-  <!-- Formulario de Entrada -->
   <div class="card">
-    <form id="finance-form">
-      <input type="text" id="description" placeholder="Descripción (ej. Sueldo, Almuerzo)" required>
+    <form id="txForm" class="form-group">
+      <input type="text" id="desc" placeholder="Descripción (ej. Depósito Ahorro, Retiro Meta)" required>
       <input type="number" id="amount" step="0.01" placeholder="Monto ($)" required>
       <select id="type">
-        <option value="income">Ganancia / Ingreso (+)</option>
-        <option value="expense">Gasto (-)</option>
+        <option value="ingreso">Ganancia / Ingreso (+)</option>
+        <option value="gasto">Gasto / Salida (-)</option>
+        <option value="ahorro">Ahorrar Dinero (Guarda en Fondo 💎)</option>
+        <option value="retiro-ahorro">Retirar de Ahorros (Usar dinero 📤)</option>
       </select>
-      <button type="submit">Agregar Transacción</button>
+      <button type="submit">Agregar Registro</button>
     </form>
   </div>
 
-  <!-- Historial de Movimientos -->
   <div class="card">
     <div class="history-title">Historial de Movimientos</div>
-    <ul id="transaction-list"></ul>
+    <div class="list" id="txList"></div>
   </div>
+</div>
 
-  <script>
-    const form = document.getElementById('finance-form');
-    const descriptionInput = document.getElementById('description');
-    const amountInput = document.getElementById('amount');
-    const typeInput = document.getElementById('type');
-    const list = document.getElementById('transaction-list');
-    const totalBalance = document.getElementById('total-balance');
-    const totalIncome = document.getElementById('total-income');
-    const totalExpense = document.getElementById('total-expense');
-    const savingsStatus = document.getElementById('savings-status');
+<script>
+  let txs = JSON.parse(localStorage.getItem('transactions')) || JSON.parse(localStorage.getItem('my_finances_data')) || [];
 
-    // Obtener datos guardados en el almacenamiento del celular
-    let transactions = JSON.parse(localStorage.getItem('my_finances')) || [];
+  const totalBalanceEl = document.getElementById('totalBalance');
+  const totalIncomeEl = document.getElementById('totalIncome');
+  const totalExpensesEl = document.getElementById('totalExpenses');
+  const totalSavingsEl = document.getElementById('totalSavings');
+  const txListEl = document.getElementById('txList');
+  const txForm = document.getElementById('txForm');
 
-    function updateUI() {
-      list.innerHTML = '';
-      let income = 0;
-      let expense = 0;
+  function updateUI() {
+    let income = 0;
+    let expenses = 0;
+    let savings = 0;
 
-      transactions.forEach((item, index) => {
-        const val = parseFloat(item.amount);
-        if (item.type === 'income') {
-          income += val;
-        } else {
-          expense += val;
-        }
-
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <span><strong>${item.description}</strong> (${item.type === 'income' ? '+' : '-'}$${val.toFixed(2)})</span>
-          <button class="delete-btn" onclick="removeTransaction(${index})">X</button>
-        `;
-        list.appendChild(li);
-      });
-
-      const balance = income - expense;
-
-      // Actualizar valores en pantalla
-      totalBalance.textContent = `$${balance.toFixed(2)}`;
-      totalIncome.textContent = `$${income.toFixed(2)}`;
-      totalExpense.textContent = `$${expense.toFixed(2)}`;
-
-      // Cambiar color según el estado del saldo
-      if (balance >= 0) {
-        totalBalance.className = "balance-amount positive";
-        savingsStatus.textContent = balance > 0 ? "¡Estás logrando ahorrar! 📈" : "Tu saldo está en cero.";
-      } else {
-        totalBalance.className = "balance-amount negative";
-        savingsStatus.textContent = "¡Cuidado! Estás gastando más de lo que ganas ⚠️";
-      }
-
-      // Guardar localmente
-      localStorage.setItem('my_finances', JSON.stringify(transactions));
-    }
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const newTransaction = {
-        description: descriptionInput.value,
-        amount: parseFloat(amountInput.value),
-        type: typeInput.type = typeInput.value
-      };
-
-      transactions.push(newTransaction);
-      updateUI();
-
-      descriptionInput.value = '';
-      amountInput.value = '';
+    txs.forEach(t => {
+      const amt = parseFloat(t.amount);
+      if (t.type === 'ingreso') income += amt;
+      else if (t.type === 'gasto') expenses += amt;
+      else if (t.type === 'ahorro') savings += amt;
+      else if (t.type === 'retiro-ahorro') savings -= amt;
     });
 
-    function removeTransaction(index) {
-      transactions.splice(index, 1);
-      updateUI();
+    const balance = income - expenses - savings;
+
+    totalBalanceEl.textContent = `$${balance.toFixed(2)}`;
+    totalIncomeEl.textContent = `$${income.toFixed(2)}`;
+    totalExpensesEl.textContent = `$${expenses.toFixed(2)}`;
+    totalSavingsEl.textContent = `$${savings.toFixed(2)}`;
+
+    txListEl.innerHTML = '';
+    if (txs.length === 0) {
+      txListEl.innerHTML = '<div style="text-align:center; color:#64748b; font-size:0.85rem; padding:12px;">Sin movimientos aún</div>';
+      return;
     }
 
-    // Inicializar app
+    txs.slice().reverse().forEach((t, revIndex) => {
+      const realIndex = txs.length - 1 - revIndex;
+      const item = document.createElement('div');
+      item.className = `item ${t.type}`;
+      
+      let sign = '+';
+      if (t.type === 'gasto') sign = '-';
+      if (t.type === 'ahorro') sign = '💎 ';
+      if (t.type === 'retiro-ahorro') sign = '📤 ';
+      
+      item.innerHTML = `
+        <div class="item-info">
+          <span class="item-desc">${t.desc}</span>
+          <span class="item-date">${t.date || ''}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="item-amount">${sign}$${parseFloat(t.amount).toFixed(2)}</span>
+          <button class="btn-del" onclick="deleteTx(${realIndex})">✕</button>
+        </div>
+      `;
+      txListEl.appendChild(item);
+    });
+
+    localStorage.setItem('transactions', JSON.stringify(txs));
+  }
+
+  txForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const desc = document.getElementById('desc').value;
+    const amount = document.getElementById('amount').value;
+    const type = document.getElementById('type').value;
+    const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+
+    txs.push({ desc, amount, type, date });
     updateUI();
-  </script>
+
+    document.getElementById('desc').value = '';
+    document.getElementById('amount').value = '';
+  });
+
+  function deleteTx(index) {
+    txs.splice(index, 1);
+    updateUI();
+  }
+
+  updateUI();
+</script>
+
 </body>
 </html>
