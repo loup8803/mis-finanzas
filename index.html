@@ -86,7 +86,9 @@
 </div>
 
 <script>
-  let txs = JSON.parse(localStorage.getItem('transactions')) || JSON.parse(localStorage.getItem('my_finances_data')) || [];
+  let txs = JSON.parse(localStorage.getItem('finanzas_data')) || 
+            JSON.parse(localStorage.getItem('my_finances_data')) || 
+            JSON.parse(localStorage.getItem('transactions')) || [];
 
   const totalBalanceEl = document.getElementById('totalBalance');
   const totalIncomeEl = document.getElementById('totalIncome');
@@ -102,8 +104,8 @@
 
     txs.forEach(t => {
       const amt = parseFloat(t.amount);
-      if (t.type === 'ingreso') income += amt;
-      else if (t.type === 'gasto') expenses += amt;
+      if (t.type === 'ingreso' || t.type === 'income') income += amt;
+      else if (t.type === 'gasto' || t.type === 'expense') expenses += amt;
       else if (t.type === 'ahorro') savings += amt;
       else if (t.type === 'retiro-ahorro') savings -= amt;
     });
@@ -124,16 +126,21 @@
     txs.slice().reverse().forEach((t, revIndex) => {
       const realIndex = txs.length - 1 - revIndex;
       const item = document.createElement('div');
-      item.className = `item ${t.type}`;
+      
+      let itemType = t.type;
+      if (t.type === 'income') itemType = 'ingreso';
+      if (t.type === 'expense') itemType = 'gasto';
+      
+      item.className = `item ${itemType}`;
       
       let sign = '+';
-      if (t.type === 'gasto') sign = '-';
-      if (t.type === 'ahorro') sign = '💎 ';
-      if (t.type === 'retiro-ahorro') sign = '📤 ';
+      if (itemType === 'gasto') sign = '-';
+      if (itemType === 'ahorro') sign = '💎 ';
+      if (itemType === 'retiro-ahorro') sign = '📤 ';
       
       item.innerHTML = `
         <div class="item-info">
-          <span class="item-desc">${t.desc}</span>
+          <span class="item-desc">${t.desc || t.description}</span>
           <span class="item-date">${t.date || ''}</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
@@ -144,7 +151,8 @@
       txListEl.appendChild(item);
     });
 
-    localStorage.setItem('transactions', JSON.stringify(txs));
+    localStorage.setItem('finanzas_data', JSON.stringify(txs));
+    localStorage.setItem('my_finances_data', JSON.stringify(txs));
   }
 
   txForm.addEventListener('submit', (e) => {
