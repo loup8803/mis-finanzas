@@ -3,22 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control Financiero</title>
+  <title>Control Financiero Anual</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background-color: #0f172a; color: #f8fafc; padding: 16px; display: flex; justify-content: center; }
     .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
-    h1 { font-size: 1.25rem; text-align: center; color: #38bdf8; margin-bottom: 8px; }
-    .card { background-color: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; }
-    .balance-title { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-    .balance-amount { font-size: 2rem; font-weight: bold; color: #4ade80; margin: 4px 0; }
+    h1 { font-size: 1.25rem; text-align: center; color: #38bdf8; margin-bottom: 4px; }
     
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .card { background-color: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; }
+    
+    .filter-group { display: flex; gap: 8px; margin-bottom: 12px; }
+    .filter-group select { background: #0f172a; color: #38bdf8; font-weight: bold; padding: 8px; border: 1px solid #38bdf8; }
+
+    .balance-title { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .balance-amount { font-size: 1.8rem; font-weight: bold; color: #4ade80; margin: 4px 0; }
+    
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .savings-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
     
     .stat-item { background: #0f172a; padding: 8px; border-radius: 8px; text-align: center; }
     .stat-label { font-size: 0.7rem; color: #94a3b8; }
-    .stat-value { font-size: 0.9rem; font-weight: 600; margin-top: 2px; }
+    .stat-value { font-size: 0.88rem; font-weight: 600; margin-top: 2px; }
     
     .val-ingreso { color: #4ade80; }
     .val-gasto { color: #f87171; }
@@ -29,14 +34,13 @@
     .section-subtitle { font-size: 0.75rem; color: #64748b; margin-top: 12px; font-weight: 600; text-transform: uppercase; }
     
     .form-group { display: flex; flex-direction: column; gap: 10px; }
-    input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 0.95rem; }
+    input, select, button { width: 100%; padding: 11px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 0.9rem; }
     input:focus, select:focus { outline: none; border-color: #38bdf8; }
     button { background: #0284c7; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 4px; }
-    button:active { background: #0369a1; }
     
-    .btn-restore { background: #334155; color: #38bdf8; font-size: 0.8rem; padding: 8px; margin-top: 8px; border-radius: 6px; border: 1px dashed #38bdf8; cursor: pointer; }
+    .btn-restore { background: #334155; color: #38bdf8; font-size: 0.75rem; padding: 8px; margin-top: 8px; border-radius: 6px; border: 1px dashed #38bdf8; cursor: pointer; }
 
-    .history-title { font-size: 1rem; color: #cbd5e1; margin-bottom: 8px; }
+    .history-title { font-size: 0.95rem; color: #cbd5e1; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
     .item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; border-radius: 8px; border-left: 4px solid #cbd5e1; }
     .item.ingreso { border-left-color: #4ade80; }
@@ -47,9 +51,9 @@
     .item.retiro-bgr, .item.retiro-angel, .item.retiro-taura { border-left-color: #ef4444; }
     
     .item-info { display: flex; flex-direction: column; }
-    .item-desc { font-weight: 500; font-size: 0.9rem; }
-    .item-date { font-size: 0.7rem; color: #64748b; }
-    .item-amount { font-weight: bold; font-size: 0.95rem; }
+    .item-desc { font-weight: 500; font-size: 0.85rem; }
+    .item-date { font-size: 0.68rem; color: #64748b; }
+    .item-amount { font-weight: bold; font-size: 0.9rem; }
     .btn-del { background: transparent; color: #64748b; border: none; width: auto; padding: 4px 8px; font-size: 0.8rem; }
   </style>
 </head>
@@ -59,32 +63,40 @@
   <h1>Control Financiero</h1>
 
   <div class="card">
-    <div class="balance-title">Saldo Disponible General</div>
+    <div class="filter-group">
+      <select id="viewPeriod" onchange="updateUI()">
+        <option value="month">Ver Mes Actual</option>
+        <option value="year">Consolidado Anual</option>
+      </select>
+      <input type="month" id="monthPicker" onchange="updateUI()">
+    </div>
+
+    <div class="balance-title" id="periodLabel">Saldo del Periodo</div>
     <div class="balance-amount" id="totalBalance">$0.00</div>
     
     <div class="stats-grid">
       <div class="stat-item">
-        <div class="stat-label">Ingresos Totales</div>
+        <div class="stat-label">Ingresos</div>
         <div class="stat-value val-ingreso" id="totalIncome">$0.00</div>
       </div>
       <div class="stat-item">
-        <div class="stat-label">Gastos Totales</div>
+        <div class="stat-label">Gastos</div>
         <div class="stat-value val-gasto" id="totalExpenses">$0.00</div>
       </div>
     </div>
 
-    <div class="section-subtitle">Mis Cuentas de Ahorro</div>
+    <div class="section-subtitle">Fondos de Ahorro (Global)</div>
     <div class="savings-grid">
       <div class="stat-item">
-        <div class="stat-label">Ahorro BGR</div>
+        <div class="stat-label">BGR</div>
         <div class="stat-value val-bgr" id="bgrSavings">$0.00</div>
       </div>
       <div class="stat-item">
-        <div class="stat-label">Ahorro Ángel</div>
+        <div class="stat-label">Ángel</div>
         <div class="stat-value val-angel" id="angelSavings">$0.00</div>
       </div>
       <div class="stat-item">
-        <div class="stat-label">Ahorro Taura</div>
+        <div class="stat-label">Taura</div>
         <div class="stat-value val-taura" id="tauraSavings">$0.00</div>
       </div>
     </div>
@@ -94,6 +106,7 @@
     <form id="txForm" class="form-group">
       <input type="text" id="desc" placeholder="Descripción (ej. Sueldo, Almuerzo, Depósito BGR)" required>
       <input type="number" id="amount" step="0.01" placeholder="Monto ($)" required>
+      <input type="date" id="customDate" required>
       <select id="type">
         <optgroup label="Movimientos Diarios">
           <option value="ingreso">Ganancia / Ingreso (+)</option>
@@ -112,122 +125,129 @@
       </select>
       <button type="submit">Agregar Registro</button>
     </form>
-    <button type="button" class="btn-restore" onclick="restaurarDatosAnteriores()">🔄 Recuperar Datos Anteriores ($1171.40 / $912.25)</button>
+    <button type="button" class="btn-restore" onclick="restaurarDatosAnteriores()">🔄 Restaurar Base de Datos ($1,171.40 / $912.25)</button>
   </div>
 
   <div class="card">
-    <div class="history-title">Historial de Movimientos</div>
+    <div class="history-title">
+      <span>Movimientos</span>
+      <small id="listCount" style="color:#64748b; font-size:0.75rem;"></small>
+    </div>
     <div class="list" id="txList"></div>
   </div>
 </div>
 
 <script>
-  let txs = JSON.parse(localStorage.getItem('my_finances_data_v2')) || 
-            JSON.parse(localStorage.getItem('finanzas_data')) || 
-            JSON.parse(localStorage.getItem('my_finances_data')) || 
-            JSON.parse(localStorage.getItem('transactions')) || [];
+  let txs = JSON.parse(localStorage.getItem('my_finances_data_v3')) || 
+            JSON.parse(localStorage.getItem('my_finances_data_v2')) || 
+            JSON.parse(localStorage.getItem('finanzas_data')) || [];
 
-  const totalBalanceEl = document.getElementById('totalBalance');
-  const totalIncomeEl = document.getElementById('totalIncome');
-  const totalExpensesEl = document.getElementById('totalExpenses');
-  const bgrSavingsEl = document.getElementById('bgrSavings');
-  const angelSavingsEl = document.getElementById('angelSavings');
-  const tauraSavingsEl = document.getElementById('tauraSavings');
-  const txListEl = document.getElementById('txList');
-  const txForm = document.getElementById('txForm');
+  const now = new Date();
+  document.getElementById('monthPicker').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  document.getElementById('customDate').valueAsDate = now;
 
   function updateUI() {
+    const viewPeriod = document.getElementById('viewPeriod').value;
+    const selectedMonth = document.getElementById('monthPicker').value; // Formato YYYY-MM
+    const selectedYear = selectedMonth.split('-')[0];
+
+    document.getElementById('monthPicker').style.display = viewPeriod === 'month' ? 'block' : 'none';
+
     let income = 0;
     let expenses = 0;
-    let bgr = 0;
-    let angel = 0;
-    let taura = 0;
+    let bgr = 0, angel = 0, taura = 0;
 
+    // Calcular montos globales de ahorro
     txs.forEach(t => {
       const amt = parseFloat(t.amount) || 0;
-      const type = t.type || '';
-
-      if (type === 'ingreso' || type === 'income') income += amt;
-      else if (type === 'gasto' || type === 'expense') expenses += amt;
-      else if (type === 'ahorro-bgr' || type === 'ahorro') bgr += amt;
-      else if (type === 'ahorro-angel') angel += amt;
-      else if (type === 'ahorro-taura') taura += amt;
-      else if (type === 'retiro-bgr') bgr -= amt;
-      else if (type === 'retiro-angel') angel -= amt;
-      else if (type === 'retiro-taura') taura -= amt;
+      if (t.type === 'ahorro-bgr' || t.type === 'ahorro') bgr += amt;
+      else if (t.type === 'ahorro-angel') angel += amt;
+      else if (t.type === 'ahorro-taura') taura += amt;
+      else if (t.type === 'retiro-bgr') bgr -= amt;
+      else if (t.type === 'retiro-angel') angel -= amt;
+      else if (t.type === 'retiro-taura') taura -= amt;
     });
 
-    const totalSavings = bgr + angel + taura;
-    const balance = income - expenses - totalSavings;
+    // Filtrar transacciones para ingresos y gastos según periodo seleccionado
+    const filteredTxs = txs.filter(t => {
+      if (!t.fullDate) return true; // Si no tiene fecha, incluir por defecto
+      if (viewPeriod === 'month') return t.fullDate.startsWith(selectedMonth);
+      if (viewPeriod === 'year') return t.fullDate.startsWith(selectedYear);
+      return true;
+    });
 
-    totalBalanceEl.textContent = `$${balance.toFixed(2)}`;
-    totalIncomeEl.textContent = `$${income.toFixed(2)}`;
-    totalExpensesEl.textContent = `$${expenses.toFixed(2)}`;
-    bgrSavingsEl.textContent = `$${bgr.toFixed(2)}`;
-    angelSavingsEl.textContent = `$${angel.toFixed(2)}`;
-    tauraSavingsEl.textContent = `$${taura.toFixed(2)}`;
+    filteredTxs.forEach(t => {
+      const amt = parseFloat(t.amount) || 0;
+      if (t.type === 'ingreso' || t.type === 'income') income += amt;
+      else if (t.type === 'gasto' || t.type === 'expense') expenses += amt;
+    });
 
+    const balance = income - expenses - (bgr + angel + taura);
+
+    document.getElementById('periodLabel').textContent = viewPeriod === 'month' ? `Saldo Mes (${selectedMonth})` : `Balanza Anual (${selectedYear})`;
+    document.getElementById('totalBalance').textContent = `$${balance.toFixed(2)}`;
+    document.getElementById('totalIncome').textContent = `$${income.toFixed(2)}`;
+    document.getElementById('totalExpenses').textContent = `$${expenses.toFixed(2)}`;
+    document.getElementById('bgrSavings').textContent = `$${bgr.toFixed(2)}`;
+    document.getElementById('angelSavings').textContent = `$${angel.toFixed(2)}`;
+    document.getElementById('tauraSavings').textContent = `$${taura.toFixed(2)}`;
+
+    // Renderizar Historial
+    const txListEl = document.getElementById('txList');
     txListEl.innerHTML = '';
-    if (txs.length === 0) {
-      txListEl.innerHTML = '<div style="text-align:center; color:#64748b; font-size:0.85rem; padding:12px;">Sin movimientos aún</div>';
-      return;
+    
+    if (filteredTxs.length === 0) {
+      txListEl.innerHTML = '<div style="text-align:center; color:#64748b; font-size:0.85rem; padding:12px;">Sin registros en este periodo</div>';
+    } else {
+      filteredTxs.slice().reverse().forEach((t) => {
+        const realIndex = txs.indexOf(t);
+        const item = document.createElement('div');
+        
+        let type = t.type === 'income' ? 'ingreso' : (t.type === 'expense' ? 'gasto' : t.type);
+        item.className = `item ${type}`;
+        
+        let sign = '+';
+        if (type === 'gasto') sign = '-';
+        if (type.startsWith('ahorro-')) sign = '💎 ';
+        if (type.startsWith('retiro-')) sign = '📤 ';
+
+        item.innerHTML = `
+          <div class="item-info">
+            <span class="item-desc">${t.desc || 'Movimiento'}</span>
+            <span class="item-date">${t.fullDate || t.date || ''}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="item-amount">${sign}$${(parseFloat(t.amount) || 0).toFixed(2)}</span>
+            <button class="btn-del" onclick="deleteTx(${realIndex})">✕</button>
+          </div>
+        `;
+        txListEl.appendChild(item);
+      });
     }
 
-    txs.slice().reverse().forEach((t, revIndex) => {
-      const realIndex = txs.length - 1 - revIndex;
-      const item = document.createElement('div');
-      
-      let type = t.type;
-      if (type === 'income') type = 'ingreso';
-      if (type === 'expense') type = 'gasto';
-      if (type === 'ahorro') type = 'ahorro-bgr';
-
-      item.className = `item ${type}`;
-      
-      let sign = '+';
-      if (type === 'gasto') sign = '-';
-      if (type.startsWith('ahorro-')) sign = '💎 ';
-      if (type.startsWith('retiro-')) sign = '📤 ';
-      
-      item.innerHTML = `
-        <div class="item-info">
-          <span class="item-desc">${t.desc || t.description || 'Movimiento'}</span>
-          <span class="item-date">${t.date || ''}</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="item-amount">${sign}$${(parseFloat(t.amount) || 0).toFixed(2)}</span>
-          <button class="btn-del" onclick="deleteTx(${realIndex})">✕</button>
-        </div>
-      `;
-      txListEl.appendChild(item);
-    });
-
-    localStorage.setItem('my_finances_data_v2', JSON.stringify(txs));
+    localStorage.setItem('my_finances_data_v3', JSON.stringify(txs));
   }
 
   function restaurarDatosAnteriores() {
-    if (txs.length === 0) {
-      txs = [
-        { desc: "Sueldo", amount: "908.19", type: "ingreso", date: "Inicial" },
-        { desc: "Fondos de reserva", amount: "110.54", type: "ingreso", date: "Inicial" },
-        { desc: "Decimos mensualizados", amount: "150.75", type: "ingreso", date: "Inicial" },
-        { desc: "Gastos Consolidados", amount: "912.25", type: "gasto", date: "Inicial" }
-      ];
-      updateUI();
-      alert("¡Datos iniciales recuperados con éxito! ($1171.40 Ingresos / $912.25 Gastos)");
-    } else {
-      alert("Ya tienes movimientos registrados en la pantalla.");
-    }
+    const today = new Date().toISOString().split('T')[0];
+    txs = [
+      { desc: "Sueldo", amount: "908.19", type: "ingreso", fullDate: today },
+      { desc: "Fondos de reserva", amount: "110.54", type: "ingreso", fullDate: today },
+      { desc: "Decimos mensualizados", amount: "150.75", type: "ingreso", fullDate: today },
+      { desc: "Gastos Consolidados", amount: "912.25", type: "gasto", fullDate: today }
+    ];
+    updateUI();
+    alert("¡Base de datos restaurada correctamente!");
   }
 
-  txForm.addEventListener('submit', (e) => {
+  document.getElementById('txForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const desc = document.getElementById('desc').value;
     const amount = document.getElementById('amount').value;
     const type = document.getElementById('type').value;
-    const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+    const fullDate = document.getElementById('customDate').value;
 
-    txs.push({ desc, amount, type, date });
+    txs.push({ desc, amount, type, fullDate });
     updateUI();
 
     document.getElementById('desc').value = '';
