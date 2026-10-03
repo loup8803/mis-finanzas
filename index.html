@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Control Financiero</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    h1 { font-size: 1.4rem; text-align: center; color: #38bdf8; margin-bottom: 4px; }
+    
+    .card { background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; }
+    .balance-title { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .balance-amount { font-size: 2rem; font-weight: bold; margin: 8px 0; }
+    .positive { color: #4ade80; }
+    .negative { color: #f87171; }
+    
+    .stats { display: flex; gap: 12px; margin-top: 8px; }
+    .stat-box { flex: 1; background: #0f172a; padding: 10px; border-radius: 8px; text-align: center; }
+    .stat-label { font-size: 0.75rem; color: #94a3b8; }
+    .stat-value { font-size: 1.1rem; font-weight: bold; margin-top: 4px; }
+    
+    form { display: flex; flex-direction: column; gap: 10px; }
+    input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 1rem; outline: none; }
+    button { background: #0284c7; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 4px; }
+    button:active { background: #0369a1; }
+    
+    .history-title { font-size: 1rem; color: #cbd5e1; margin-bottom: 8px; }
+    ul { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
+    li { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; border-radius: 6px; font-size: 0.9rem; }
+    .delete-btn { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #ef4444; border: none; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <h1>Control Financiero</h1>
+
+  <!-- Tarjeta de Resumen -->
+  <div class="card">
+    <div class="balance-title">Saldo Disponible</div>
+    <div id="total-balance" class="balance-amount">$0.00</div>
+    <p id="savings-status" style="font-size: 0.85rem; color: #94a3b8;"></p>
+
+    <div class="stats">
+      <div class="stat-box">
+        <div class="stat-label">Ingresos</div>
+        <div id="total-income" class="stat-value positive">$0.00</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Gastos</div>
+        <div id="total-expense" class="stat-value negative">$0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de Entrada -->
+  <div class="card">
+    <form id="finance-form">
+      <input type="text" id="description" placeholder="Descripción (ej. Sueldo, Almuerzo)" required>
+      <input type="number" id="amount" step="0.01" placeholder="Monto ($)" required>
+      <select id="type">
+        <option value="income">Ganancia / Ingreso (+)</option>
+        <option value="expense">Gasto (-)</option>
+      </select>
+      <button type="submit">Agregar Transacción</button>
+    </form>
+  </div>
+
+  <!-- Historial de Movimientos -->
+  <div class="card">
+    <div class="history-title">Historial de Movimientos</div>
+    <ul id="transaction-list"></ul>
+  </div>
+
+  <script>
+    const form = document.getElementById('finance-form');
+    const descriptionInput = document.getElementById('description');
+    const amountInput = document.getElementById('amount');
+    const typeInput = document.getElementById('type');
+    const list = document.getElementById('transaction-list');
+    const totalBalance = document.getElementById('total-balance');
+    const totalIncome = document.getElementById('total-income');
+    const totalExpense = document.getElementById('total-expense');
+    const savingsStatus = document.getElementById('savings-status');
+
+    // Obtener datos guardados en el almacenamiento del celular
+    let transactions = JSON.parse(localStorage.getItem('my_finances')) || [];
+
+    function updateUI() {
+      list.innerHTML = '';
+      let income = 0;
+      let expense = 0;
+
+      transactions.forEach((item, index) => {
+        const val = parseFloat(item.amount);
+        if (item.type === 'income') {
+          income += val;
+        } else {
+          expense += val;
+        }
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span><strong>${item.description}</strong> (${item.type === 'income' ? '+' : '-'}$${val.toFixed(2)})</span>
+          <button class="delete-btn" onclick="removeTransaction(${index})">X</button>
+        `;
+        list.appendChild(li);
+      });
+
+      const balance = income - expense;
+
+      // Actualizar valores en pantalla
+      totalBalance.textContent = `$${balance.toFixed(2)}`;
+      totalIncome.textContent = `$${income.toFixed(2)}`;
+      totalExpense.textContent = `$${expense.toFixed(2)}`;
+
+      // Cambiar color según el estado del saldo
+      if (balance >= 0) {
+        totalBalance.className = "balance-amount positive";
+        savingsStatus.textContent = balance > 0 ? "¡Estás logrando ahorrar! 📈" : "Tu saldo está en cero.";
+      } else {
+        totalBalance.className = "balance-amount negative";
+        savingsStatus.textContent = "¡Cuidado! Estás gastando más de lo que ganas ⚠️";
+      }
+
+      // Guardar localmente
+      localStorage.setItem('my_finances', JSON.stringify(transactions));
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newTransaction = {
+        description: descriptionInput.value,
+        amount: parseFloat(amountInput.value),
+        type: typeInput.type = typeInput.value
+      };
+
+      transactions.push(newTransaction);
+      updateUI();
+
+      descriptionInput.value = '';
+      amountInput.value = '';
+    });
+
+    function removeTransaction(index) {
+      transactions.splice(index, 1);
+      updateUI();
+    }
+
+    // Inicializar app
+    updateUI();
+  </script>
+</body>
+</html>
